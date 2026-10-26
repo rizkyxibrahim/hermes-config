@@ -1,0 +1,22 @@
+# Contoh Konfigurasi Hermes
+# File ini adalah contoh untuk referensi. Jangan gunakan langsung sebagai
+# konfigurasi produksi tanpa menyesuaikan.
+
+_config_version: 51
+
+database:
+  journal_mode: "wal"
+
+runtime:
+  nofile_soft_limit: 4096
+
+attachments:
+  storage: "hermes-home"
+
+plugins:
+  enabled:
+    - agent-importers
+  disabled: []
+
+model:
+  default: "nvidia/nemotron-3.5-super-vl-120b-a12b"
