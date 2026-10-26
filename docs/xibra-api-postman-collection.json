@@ -1,0 +1,653 @@
+{
+  "info": {
+    "name": "Xibra API - Postman Collection",
+    "_postman_id": "xibra-api-collection-v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection untuk testing semua endpoint Xibra API (Laravel + Sanctum + PostgreSQL)"
+  },
+  "variables": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string",
+      "description": "Base URL Xibra API development server"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string",
+      "description": "Bearer token dari login (diisi otomatis setelah request login)"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string",
+      "description": "ID user dari response login"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "LOGIN - Dapatkan Bearer Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identity\": \"rizkyxibrahim\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login dengan username/email/phone + password. Respons akan berisi Bearer token.\n\nGunakan token ini untuk semua request berikutnya di tab Authorization → Bearer Token."
+          },
+          "response": [
+            {
+              "name": "Login Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"success\",\n  \"code\": \"AUTH_LOGIN_SUCCESS\",\n  \"message\": \"Login berhasil\",\n  \"data\": {\n    \"user\": {\n      \"id\": 1,\n      \"name\": \"Rizky Ibrahim\",\n      \"username\": \"rizkyxibrahim\",\n      \"email\": \"rizky@example.com\",\n      \"phone\": \"08123456789\"\n    },\n    \"token\": \"1|abc123...\",\n    \"token_type\": \"Bearer\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has token\", function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data.token).to.not.be.empty;",
+                  "});",
+                  "pm.test(\"Save token to collection variable\", function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.collectionVariables.set(\"auth_token\", json.data.token);",
+                  "  pm.collectionVariables.set(\"user_id\", json.data.user.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "ME - Cek Profil Login",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "me"]
+            },
+            "description": "Mengambil profil pengguna yang sedang login. Memerlukan Bearer token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has user data\", function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "LOGOUT - Revoke Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            },
+            "description": "Logout dan revoke token aktif."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Schedules (Jadwal)",
+      "item": [
+        {
+          "name": "GET - Daftar Jadwal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/schedules",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "schedules"]
+            },
+            "description": "Mengambil daftar jadwal pengguna."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is array\", function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Buat Jadwal Baru",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Rapat Tim Xibra\",\n  \"description\": \"Diskusi progres pengembangan portfolio-web\",\n  \"start_time\": \"2026-10-28T09:00:00\",\n  \"end_time\": \"2026-10-28T10:00:00\",\n  \"location\": \"Kantor / Online\",\n  \"is_all_day\": false,\n  \"recurring\": null,\n  \"timezone\": \"Asia/Jakarta\",\n  \"is_overnight\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/schedules",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "schedules"]
+            },
+            "description": "Membuat jadwal baru. Semua field divalidasi di sisi API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Response has schedule data\", function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data.title).to.eql(\"Rapat Tim Xibra\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Todos (Tugas)",
+      "item": [
+        {
+          "name": "GET - Daftar Tugas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/todos",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "todos"]
+            },
+            "description": "Mengambil daftar tugas pengguna. Support filter ?completed=true/false"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Buat Tugas Baru",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Review portfolio-web\",\n  \"description\": \"Periksa semua halaman dan integrasi API\",\n  \"is_completed\": false,\n  \"priority\": \"high\",\n  \"scheduled_start_at\": \"2026-10-28T14:00:00\",\n  \"scheduled_end_at\": \"2026-10-28T16:00:00\",\n  \"due_at\": \"2026-10-30T23:59:59\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/todos",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "todos"]
+            },
+            "description": "Membuat tugas baru dengan prioritas dan jadwal."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Response has todo data\", function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data.title).to.eql(\"Review portfolio-web\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reminders (Pengingat)",
+      "item": [
+        {
+          "name": "GET - Daftar Pengingat",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reminders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "reminders"]
+            },
+            "description": "Mengambil daftar pengingat pengguna."
+          }
+        },
+        {
+          "name": "POST - Buat Pengingat Baru",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Pembayaran tagihan listrik\",\n  \"description\": \"Bayar tagihan PLN bulan Oktober\",\n  \"reminder_at\": \"2026-10-29T08:00:00\",\n  \"is_sent\": false,\n  \"is_completed\": false,\n  \"recurring\": \"monthly\",\n  \"delivery_status\": \"pending\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/reminders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "reminders"]
+            },
+            "description": "Membuat pengingat baru."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance Transactions (Keuangan)",
+      "item": [
+        {
+          "name": "GET - Daftar Transaksi",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/finance/transactions?type=out",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "finance", "transactions"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "out"
+                }
+              ]
+            },
+            "description": "Mengambil transaksi keuangan. Support filter ?type=in|out|all"
+          }
+        },
+        {
+          "name": "POST - Catat Transaksi Baru",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"out\",\n  \"amount\": 25000,\n  \"category\": \"makan siang\",\n  \"description\": \"Makan siang di warteg\",\n  \"transaction_date\": \"2026-10-27\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/finance/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "finance", "transactions"]
+            },
+            "description": "Mencatat transaksi pemasukan atau pengeluaran.\n\ntype: 'in' (pemasukan) atau 'out' (pengeluaran)\namount: dalam rupiah (tanpa format)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Response has transaction data\", function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data.amount).to.eql(25000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Portfolio Skills (Keterampilan)",
+      "item": [
+        {
+          "name": "GET - Daftar Keterampilan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/portfolio/skills",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "portfolio", "skills"]
+            },
+            "description": "Mengambil daftar keterampilan portfolio."
+          }
+        },
+        {
+          "name": "POST - Tambah Keterampilan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Laravel Development\",\n  \"category\": \"Backend\",\n  \"level\": \"advanced\",\n  \"years_of_experience\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/portfolio/skills",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "portfolio", "skills"]
+            },
+            "description": "Menambahkan keterampilan baru ke portfolio."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Portfolio Projects (Proyek)",
+      "item": [
+        {
+          "name": "GET - Daftar Proyek",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/portfolio/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "portfolio", "projects"]
+            },
+            "description": "Mengambil daftar proyek portfolio."
+          }
+        },
+        {
+          "name": "POST - Buat Proyek Baru",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Xibra Platform\",\n  \"description\": \"Ekosistem produktivitas pribadi dengan API, bot, dan web\",\n  \"image_url\": \"https://example.com/xibra.jpg\",\n  \"github_url\": \"https://github.com/rizkyxibrahim/xibra-api\",\n  \"live_url\": \"https://rizkyxibrahim.com\",\n  \"start_date\": \"2026-01-01\",\n  \"end_date\": null,\n  \"is_featured\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/portfolio/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "portfolio", "projects"]
+            },
+            "description": "Menambahkan proyek baru ke portfolio."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile Photo",
+      "item": [
+        {
+          "name": "POST - Upload Foto Profil",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/profile/photo",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "profile", "photo"]
+            },
+            "description": "Upload foto profil. Maksimal 2MB, tipe image (jpg, png, webp)."
+          }
+        },
+        {
+          "name": "DELETE - Hapus Foto Profil",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/profile/photo",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "profile", "photo"]
+            },
+            "description": "Menghapus foto profil pengguna."
+          }
+        }
+      ]
+    }
+  ]
+}

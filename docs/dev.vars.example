@@ -1,0 +1,13 @@
+# Contoh .dev.vars untuk development lokal dengan wrangler dev
+# JANGAN commit file ini ke GitHub
+
+BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+OWNER_ID=123456789
+INTERNAL_API_SECRET=rahasia-internal-api
+TOKEN_KEY=kunci-enkripsi-token
+WEBHOOK_SECRET=kunci-webhook-telegram
+GEMINI_MODEL=gemini-3.8-flash
+GEMINI_FALLBACK_MODEL=gemini-3.6-flash
+PUBLIC_BASE_URL=http://localhost:8787
+TELEGRAM_FRONTEND=hermes
+AUTO_APPROVE=false
