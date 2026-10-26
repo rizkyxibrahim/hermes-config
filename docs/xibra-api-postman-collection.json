@@ -3,7 +3,7 @@
     "name": "Xibra API - Postman Collection",
     "_postman_id": "xibra-api-collection-v1",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Collection untuk testing semua endpoint Xibra API (Laravel + Sanctum + PostgreSQL)"
+    "description": "Collection for testing all Xibra API endpoints (Laravel + Sanctum + PostgreSQL)"
   },
   "variables": [
     {
@@ -16,13 +16,13 @@
       "key": "auth_token",
       "value": "",
       "type": "string",
-      "description": "Bearer token dari login (diisi otomatis setelah request login)"
+      "description": "Bearer token from login (auto-filled after login request)"
     },
     {
       "key": "user_id",
       "value": "",
       "type": "string",
-      "description": "ID user dari response login"
+      "description": "User ID from login response"
     }
   ],
   "item": [
@@ -30,7 +30,7 @@
       "name": "Authentication",
       "item": [
         {
-          "name": "LOGIN - Dapatkan Bearer Token",
+          "name": "LOGIN - Get Bearer Token",
           "request": {
             "method": "POST",
             "header": [
@@ -49,17 +49,24 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             },
-            "description": "Login dengan username/email/phone + password. Respons akan berisi Bearer token.\n\nGunakan token ini untuk semua request berikutnya di tab Authorization → Bearer Token."
+            "description": "Login with username/email/phone + password. Response will contain Bearer token.\n\nUse this token for all subsequent requests in Authorization tab \u2192 Bearer Token."
           },
           "response": [
             {
               "name": "Login Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"status\": \"success\",\n  \"code\": \"AUTH_LOGIN_SUCCESS\",\n  \"message\": \"Login berhasil\",\n  \"data\": {\n    \"user\": {\n      \"id\": 1,\n      \"name\": \"Rizky Ibrahim\",\n      \"username\": \"rizkyxibrahim\",\n      \"email\": \"rizky@example.com\",\n      \"phone\": \"08123456789\"\n    },\n    \"token\": \"1|abc123...\",\n    \"token_type\": \"Bearer\"\n  }\n}"
+              "body": "{\n  \"status\": \"success\",\n  \"code\": \"AUTH_LOGIN_SUCCESS\",\n  \"message\": \"Login successful.\",\n  \"data\": {\n    \"user\": {\n      \"id\": 1,\n      \"name\": \"Rizky Ibrahim\",\n      \"username\": \"rizkyxibrahim\",\n      \"email\": \"rizky@example.com\",\n      \"phone\": \"08123456789\"\n    },\n    \"token\": \"1|abc123...\",\n    \"token_type\": \"Bearer\"\n  }\n}"
             }
           ],
           "event": [
@@ -86,7 +93,107 @@
           ]
         },
         {
-          "name": "ME - Cek Profil Login",
+          "name": "FORGOT PASSWORD - Send Reset Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rizky@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Send password reset link to registered email. No authentication required."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has success message\", function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.code).to.eql(\"PASSWORD_RESET_LINK_SENT\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "RESET PASSWORD - Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rizky@example.com\",\n  \"token\": \"<token_from_email>\",\n  \"password\": \"newpassword123\",\n  \"password_confirmation\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "Reset password using token received via email. Token expires after 60 minutes."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Password reset successful\", function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.code).to.eql(\"PASSWORD_RESET_SUCCESS\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "ME - Check Login Profile",
           "request": {
             "method": "GET",
             "header": [
@@ -101,10 +208,17 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/auth/me",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "me"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
             },
-            "description": "Mengambil profil pengguna yang sedang login. Memerlukan Bearer token."
+            "description": "Get profile of currently logged-in user. Requires Bearer token."
           },
           "event": [
             {
@@ -140,10 +254,17 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/auth/logout",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "logout"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
             },
-            "description": "Logout dan revoke token aktif."
+            "description": "Logout and revoke active token."
           },
           "event": [
             {
@@ -162,10 +283,10 @@
       ]
     },
     {
-      "name": "Schedules (Jadwal)",
+      "name": "Schedules",
       "item": [
         {
-          "name": "GET - Daftar Jadwal",
+          "name": "GET - List Schedules",
           "request": {
             "method": "GET",
             "header": [
@@ -180,10 +301,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/schedules",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "schedules"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "schedules"
+              ]
             },
-            "description": "Mengambil daftar jadwal pengguna."
+            "description": "Get list of user's schedules."
           },
           "event": [
             {
@@ -204,7 +331,7 @@
           ]
         },
         {
-          "name": "POST - Buat Jadwal Baru",
+          "name": "POST - Create Schedule",
           "request": {
             "method": "POST",
             "header": [
@@ -223,14 +350,20 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Rapat Tim Xibra\",\n  \"description\": \"Diskusi progres pengembangan portfolio-web\",\n  \"start_time\": \"2026-10-28T09:00:00\",\n  \"end_time\": \"2026-10-28T10:00:00\",\n  \"location\": \"Kantor / Online\",\n  \"is_all_day\": false,\n  \"recurring\": null,\n  \"timezone\": \"Asia/Jakarta\",\n  \"is_overnight\": false\n}"
+              "raw": "{\n  \"title\": \"Xibra Team Meeting\",\n  \"description\": \"Discuss portfolio-web development progress\",\n  \"start_time\": \"2026-10-28T09:00:00\",\n  \"end_time\": \"2026-10-28T10:00:00\",\n  \"location\": \"Office / Online\",\n  \"is_all_day\": false,\n  \"recurring\": false,\n  \"recurring_pattern\": \"weekly\",\n  \"timezone\": \"Asia/Jakarta\",\n  \"is_overnight\": false\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/schedules",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "schedules"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "schedules"
+              ]
             },
-            "description": "Membuat jadwal baru. Semua field divalidasi di sisi API."
+            "description": "Create new schedule. All fields validated on API side.\n\nrecurring: true/false (boolean, optional, defaults to false)\nrecurring_pattern: daily, weekdays, weekly, monthly (required if recurring=true)\ntimezone: Asia/Jakarta, UTC, Asia/Bangkok, Asia/Kolkata"
           },
           "event": [
             {
@@ -242,7 +375,7 @@
                   "});",
                   "pm.test(\"Response has schedule data\", function () {",
                   "  var json = pm.response.json();",
-                  "  pm.expect(json.data.title).to.eql(\"Rapat Tim Xibra\");",
+                  "  pm.expect(json.data.title).to.eql(\"Xibra Team Meeting\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -253,10 +386,10 @@
       ]
     },
     {
-      "name": "Todos (Tugas)",
+      "name": "Todos",
       "item": [
         {
-          "name": "GET - Daftar Tugas",
+          "name": "GET - List Todos",
           "request": {
             "method": "GET",
             "header": [
@@ -271,10 +404,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/todos",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "todos"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "todos"
+              ]
             },
-            "description": "Mengambil daftar tugas pengguna. Support filter ?completed=true/false"
+            "description": "Get list of user's todos. Support filter ?completed=true/false"
           },
           "event": [
             {
@@ -291,7 +430,7 @@
           ]
         },
         {
-          "name": "POST - Buat Tugas Baru",
+          "name": "POST - Create Todo",
           "request": {
             "method": "POST",
             "header": [
@@ -310,14 +449,20 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Review portfolio-web\",\n  \"description\": \"Periksa semua halaman dan integrasi API\",\n  \"is_completed\": false,\n  \"priority\": \"high\",\n  \"scheduled_start_at\": \"2026-10-28T14:00:00\",\n  \"scheduled_end_at\": \"2026-10-28T16:00:00\",\n  \"due_at\": \"2026-10-30T23:59:59\"\n}"
+              "raw": "{\n  \"title\": \"Review portfolio-web\",\n  \"description\": \"Check all pages and API integrations\",\n  \"is_completed\": false,\n  \"priority\": \"high\",\n  \"scheduled_start_at\": \"2026-10-28T14:00:00\",\n  \"scheduled_end_at\": \"2026-10-28T16:00:00\",\n  \"due_at\": \"2026-10-30T23:59:59\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/todos",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "todos"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "todos"
+              ]
             },
-            "description": "Membuat tugas baru dengan prioritas dan jadwal."
+            "description": "Create new todo with priority and schedule."
           },
           "event": [
             {
@@ -340,10 +485,10 @@
       ]
     },
     {
-      "name": "Reminders (Pengingat)",
+      "name": "Reminders",
       "item": [
         {
-          "name": "GET - Daftar Pengingat",
+          "name": "GET - List Reminders",
           "request": {
             "method": "GET",
             "header": [
@@ -358,14 +503,20 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/reminders",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "reminders"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reminders"
+              ]
             },
-            "description": "Mengambil daftar pengingat pengguna."
+            "description": "Get list of user's reminders."
           }
         },
         {
-          "name": "POST - Buat Pengingat Baru",
+          "name": "POST - Create Reminder",
           "request": {
             "method": "POST",
             "header": [
@@ -384,23 +535,29 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Pembayaran tagihan listrik\",\n  \"description\": \"Bayar tagihan PLN bulan Oktober\",\n  \"reminder_at\": \"2026-10-29T08:00:00\",\n  \"is_sent\": false,\n  \"is_completed\": false,\n  \"recurring\": \"monthly\",\n  \"delivery_status\": \"pending\"\n}"
+              "raw": "{\n  \"title\": \"Pay electricity bill\",\n  \"description\": \"Pay PLN bill for October\",\n  \"reminder_at\": \"2026-10-29T08:00:00\",\n  \"is_sent\": false,\n  \"is_completed\": false,\n  \"recurring\": false,\n  \"recurring_pattern\": \"monthly\",\n  \"delivery_status\": \"pending\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/reminders",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "reminders"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reminders"
+              ]
             },
-            "description": "Membuat pengingat baru."
+            "description": "Create new reminder.\n\nrecurring: true/false (boolean)\nrecurring_pattern: daily, weekdays, weekly, before_event (required if recurring=true)"
           }
         }
       ]
     },
     {
-      "name": "Finance Transactions (Keuangan)",
+      "name": "Finance Transactions",
       "item": [
         {
-          "name": "GET - Daftar Transaksi",
+          "name": "GET - List Transactions",
           "request": {
             "method": "GET",
             "header": [
@@ -414,21 +571,28 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/finance/transactions?type=out",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "finance", "transactions"],
+              "raw": "{{base_url}}/api/v1/finance/transactions?type=expense",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "finance",
+                "transactions"
+              ],
               "query": [
                 {
                   "key": "type",
-                  "value": "out"
+                  "value": "expense"
                 }
               ]
             },
-            "description": "Mengambil transaksi keuangan. Support filter ?type=in|out|all"
+            "description": "Get financial transactions. Support filter ?type=income|expense|all"
           }
         },
         {
-          "name": "POST - Catat Transaksi Baru",
+          "name": "POST - Create Transaction",
           "request": {
             "method": "POST",
             "header": [
@@ -447,40 +611,47 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"out\",\n  \"amount\": 25000,\n  \"category\": \"makan siang\",\n  \"description\": \"Makan siang di warteg\",\n  \"transaction_date\": \"2026-10-27\"\n}"
+              "raw": "{\n  \"type\": \"out\",\n  \"amount\": 25000,\n  \"category\": \"lunch\",\n  \"description\": \"Lunch at warteg\",\n  \"transaction_date\": \"2026-10-27\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/finance/transactions",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "finance", "transactions"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "finance",
+                "transactions"
+              ]
             },
-            "description": "Mencatat transaksi pemasukan atau pengeluaran.\n\ntype: 'in' (pemasukan) atau 'out' (pengeluaran)\namount: dalam rupiah (tanpa format)"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 201\", function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});",
-                  "pm.test(\"Response has transaction data\", function () {",
-                  "  var json = pm.response.json();",
-                  "  pm.expect(json.data.amount).to.eql(25000);",
-                  "});"
-                ],
-                "type": "text/javascript"
+            "description": "Record income or expense transaction.\n\ntype: \"in\" or \"income\" for income, \"out\" or \"expense\" for expense (API normalizes to income/expense)\namount: in IDR (numeric, no formatting)\ntransaction_date: YYYY-MM-DD format",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test(\"Status code is 201\", function () {",
+                    "  pm.response.to.have.status(201);",
+                    "});",
+                    "pm.test(\"Response has transaction data\", function () {",
+                    "  var json = pm.response.json();",
+                    "  pm.expect(json.data.amount).to.eql(25000);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
               }
-            }
-          ]
+            ]
+          }
         }
       ]
     },
     {
-      "name": "Portfolio Skills (Keterampilan)",
+      "name": "Portfolio Skills",
       "item": [
         {
-          "name": "GET - Daftar Keterampilan",
+          "name": "GET - List Skills",
           "request": {
             "method": "GET",
             "header": [
@@ -495,14 +666,21 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/portfolio/skills",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "portfolio", "skills"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "portfolio",
+                "skills"
+              ]
             },
-            "description": "Mengambil daftar keterampilan portfolio."
+            "description": "Get list of portfolio skills."
           }
         },
         {
-          "name": "POST - Tambah Keterampilan",
+          "name": "POST - Add Skill",
           "request": {
             "method": "POST",
             "header": [
@@ -525,19 +703,26 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/portfolio/skills",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "portfolio", "skills"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "portfolio",
+                "skills"
+              ]
             },
-            "description": "Menambahkan keterampilan baru ke portfolio."
+            "description": "Add new skill to portfolio.\n\nlevel: beginner, intermediate, advanced, expert"
           }
         }
       ]
     },
     {
-      "name": "Portfolio Projects (Proyek)",
+      "name": "Portfolio Projects",
       "item": [
         {
-          "name": "GET - Daftar Proyek",
+          "name": "GET - List Projects",
           "request": {
             "method": "GET",
             "header": [
@@ -552,14 +737,21 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/portfolio/projects",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "portfolio", "projects"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "portfolio",
+                "projects"
+              ]
             },
-            "description": "Mengambil daftar proyek portfolio."
+            "description": "Get list of portfolio projects."
           }
         },
         {
-          "name": "POST - Buat Proyek Baru",
+          "name": "POST - Create Project",
           "request": {
             "method": "POST",
             "header": [
@@ -578,14 +770,21 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Xibra Platform\",\n  \"description\": \"Ekosistem produktivitas pribadi dengan API, bot, dan web\",\n  \"image_url\": \"https://example.com/xibra.jpg\",\n  \"github_url\": \"https://github.com/rizkyxibrahim/xibra-api\",\n  \"live_url\": \"https://rizkyxibrahim.com\",\n  \"start_date\": \"2026-01-01\",\n  \"end_date\": null,\n  \"is_featured\": true\n}"
+              "raw": "{\n  \"title\": \"Xibra Platform\",\n  \"description\": \"Personal productivity ecosystem with API, bot, and web\",\n  \"image_url\": \"https://example.com/xibra.jpg\",\n  \"github_url\": \"https://github.com/rizkyxibrahim/xibra-api\",\n  \"live_url\": \"https://rizkyxibrahim.com\",\n  \"start_date\": \"2026-01-01\",\n  \"end_date\": null,\n  \"is_featured\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/portfolio/projects",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "portfolio", "projects"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "portfolio",
+                "projects"
+              ]
             },
-            "description": "Menambahkan proyek baru ke portfolio."
+            "description": "Add new project to portfolio."
           }
         }
       ]
@@ -594,7 +793,7 @@
       "name": "Profile Photo",
       "item": [
         {
-          "name": "POST - Upload Foto Profil",
+          "name": "POST - Upload Profile Photo",
           "request": {
             "method": "POST",
             "header": [
@@ -619,14 +818,21 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/profile/photo",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "profile", "photo"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile",
+                "photo"
+              ]
             },
-            "description": "Upload foto profil. Maksimal 2MB, tipe image (jpg, png, webp)."
+            "description": "Upload profile photo. Max 2MB, image type (jpg, png, webp)."
           }
         },
         {
-          "name": "DELETE - Hapus Foto Profil",
+          "name": "DELETE - Delete Profile Photo",
           "request": {
             "method": "DELETE",
             "header": [
@@ -641,10 +847,17 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/profile/photo",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "profile", "photo"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile",
+                "photo"
+              ]
             },
-            "description": "Menghapus foto profil pengguna."
+            "description": "Delete user's profile photo."
           }
         }
       ]
